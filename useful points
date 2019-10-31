@@ -1,0 +1,1 @@
+command to read dataset : df = spark.read.csv("/user/hm74/NYCOpenData/vxxs-iyt2.tsv.gz", sep = '\t',header = 'true')
