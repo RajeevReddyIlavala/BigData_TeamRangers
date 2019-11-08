@@ -13,13 +13,20 @@ df = spark.read.csv(sys.argv[1], sep = '\t',header = 'true')
 
 table1 = df.replace("No Data",'null').replace('n/a','null').replace('NA','null').replace('-','null').replace('None','null')
 table1.createOrReplaceTempView("table1")
-count = 0
+nonemptycells = 0
+emptycells = 0
 for c in df.columns:
 	print(c)	
 	result = spark.sql("SELECT count(`"+c+"`) as cellcount from table1 where `"+c+ "`<> 'null' and `"+c+ "` is not null ")
-	result.show()
-	test = result.collect()	
-	count += test[0].cellcount
-print(count)
+	nonempty = result.collect()	
+	nonemptycells += nonempty[0].cellcount
+	result = spark.sql("SELECT count(`"+c+"`) as cellcount from table1 where `"+c+ "`= 'null' or `"+c+ "` is  null ")
+	empty = result.collect()
+	emptycells += empty[0].cellcount
+	
+
+
+print(nonemptycells)
+print(emptycells)
 #result = spark.sql("SELECT * from table1").show()
 spark.stop()
