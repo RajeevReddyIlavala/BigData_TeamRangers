@@ -12,8 +12,8 @@ spark = SparkSession \
      .getOrCreate()
 df = spark.read.csv(sys.argv[1], sep = '\t',header = 'true')
 
-table1 = df.replace("No Data",'null').replace('n/a','null').replace('NA','null').replace('-','null').replace('None','null')
-table1.createOrReplaceTempView("table1")
+#table1 = df.replace("No Data",'null').replace('n/a','null').replace('NA','null').replace('-','null').replace('None','null')
+df.createOrReplaceTempView("table1")
 
 
 result_json = {
@@ -24,10 +24,10 @@ result_json["columns"]=list()
 for column in df.columns:	
 	nonemptycells = 0
 	emptycells = 0
-	result = spark.sql("SELECT COUNT(`"+column+"`) as cellcount from table1 WHERE `"+column+ "`<> 'null' and `"+column+ "` is not null ")
+	result = spark.sql("SELECT COUNT(`"+column+"`) as cellcount from table1 WHERE `"+column+ "` is not null ")
 	nonempty = result.collect()	
 	nonemptycells = nonempty[0].cellcount
-	result = spark.sql("SELECT COUNT(`"+column+"`) as cellcount from table1 WHERE `"+column+ "`= 'null' or `"+column+ "` is  null ")
+	result = spark.sql("SELECT COUNT(`"+column+"`) as cellcount from table1 WHERE `"+column+ "` is  null ")
 	empty = result.collect()
 	emptycells = empty[0].cellcount
 	result = spark.sql("SELECT COUNT(DISTINCT `"+column+"`) as distinct_count from table1")
@@ -51,3 +51,4 @@ with open(filename, 'w') as f:
 
 
 spark.stop()
+
