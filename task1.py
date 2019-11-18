@@ -25,7 +25,7 @@ result_json = {
     }
 result_json["columns"]=list()
 intRegex = re.compile(r'^[-+]?[0-9]+$')
-realRegex = re.compile(r'([0-9]+(?:\.[0-9]+)?)(?:\s)')
+realRegex = re.compile(r'([0-9]+(?:\.[0-9]+)?)(?:\s)$')
 
 
 for column in df.columns:	
@@ -57,26 +57,27 @@ for column in df.columns:
 	totalChars = 0
 	column_data = spark.sql("SELECT `"+column+"` as attr from table1 ").collect()
 	for row in column_data:
-		if(re.match(intRegex, row.attr)):
-			intList.append(int(row.attr))
-			realList.append(float(row.attr))
-		elif(re.match(realRegex, row.attr)):
-			realList.append(row.attr)
-		else:
-			try:
-				dateTime = parse(row.attr)
-				dateTimeList.append(dateTime)
-			except (ValueError, OverflowError) as e:
-				totalChars += len(row.attr)
-				textList.append(row.attr)
+		if(row.attr is not None):
+			if(re.match(intRegex, row.attr)):
+				intList.append(int(row.attr))
+				realList.append(float(row.attr))
+			elif(re.match(realRegex, row.attr)):
+				realList.append(float(row.attr))	
+			else:
+				try:
+					dateTime = parse(row.attr)
+					dateTimeList.append(dateTime)
+				except (ValueError, OverflowError) as e:
+					totalChars += len(row.attr)
+					textList.append(row.attr)
 
 	if intList:
 		intJson = {"type":"INTEGER (LONG)",
 		"count":len(intList),
 		"max_value":max(intList),
 		"min_value":min(intList),
-		"mean":stats.mean(intList),
-		"stddev":stats.stdev(intList)
+		"mean":stats.mean(intList) if len(intList) > 1 else intList[0],
+		"stddev":stats.stdev(intList) if len(intList) > 1 else 0,
 		}
 		column_json["data_types"].append(intJson)
 	if realList:
@@ -84,16 +85,16 @@ for column in df.columns:
 		"count":len(realList),
 		"max_value":max(realList),
 		"min_value":min(realList),
-		"mean":stats.mean(realList),
-		"stddev":stats.stdev(realList)
+		"mean":stats.mean(realList) if len(realList) > 1 else realList[0],
+		"stddev":stats.stdev(realList) if len(realList) > 1 else 0
 		}
 		column_json["data_types"].append(realJson)
 
 	if dateTimeList:
 		dateTimeJson = {"type":"DATE/TIME",
 		"count":len(dateTimeList),
-		"max_value":max(dateTimeList),
-		"min_value":min(dateTimeList)
+		"max_value":str(max(dateTimeList)),
+		"min_value":str(min(dateTimeList))
 		}
 		column_json["data_types"].append(dateTimeJson)
 
