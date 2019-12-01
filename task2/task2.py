@@ -39,31 +39,30 @@ websiteList = list()
 nameList = list()
 print("Count:",df.count())
 
+count =0
 
 for column in df.columns:
 	column_data = spark.sql("SELECT `"+column+"` as attr from table1 ").collect()
-	brooklynCount = spark.sql("select count(*) from table1 where soundex(`"+ column +"`) = soundex('BROOKLYN')").rdd.collect()[0]
-	queensCount = spark.sql("select count(*) from table1 where soundex(`"+ column +"`) = soundex('QUEENS')").rdd.collect()
-	bronxCount = spark.sql("select count(*) from table1 where soundex(`"+ column +"`) = soundex('BRONX')").rdd.collect()
-	manhattanCount = spark.sql("select count(*) from table1 where soundex(`"+ column +"`) = soundex('MANHATTAN')").rdd.collect()
-	statenCount = spark.sql("select count(*) from table1 where soundex(`"+ column +"`) = soundex('Staten Island')").rdd.collect()
-	for row in column_data:
-		if(row.attr is not None):
+	if count ==0:
+		count +=1
+		boroughCount = spark.sql("select * from table1 where lower(`"+ column +"`) in ('brooklyn','bronx', 'manhattan', 'queens', 'staten island')").count()
+		for row in column_data:
+			if(row.attr is not None):
 			
-			if(re.match(zipRegex, row.attr)):
-				zipList.append(row.attr)
-			elif(re.match(phoneNumberRegex1, row.attr) or re.match(phoneNumberRegex2, row.attr)):
-				phoneNumberList.append(row.attr)
-			elif(re.match(emailRegex,row.attr)):
-				emailList.append(row.attr)
-			elif(re.match(coordinatesRegex, row.attr)):
-				coordinatesList.append(row.attr)
-			elif(re.match(streetRegex,row.attr)):
-				streetList.append(row.attr)
-			elif(re.match(nameRegex,row.attr)):
-				nameList.append(row.attr)
-			elif(re.match(websiteRegex,row.attr)):
-				websitelList.append(row.attr)
+				if(re.match(zipRegex, row.attr)):
+					zipList.append(row.attr)
+				elif(re.match(phoneNumberRegex1, row.attr) or re.match(phoneNumberRegex2, row.attr)):
+					phoneNumberList.append(row.attr)
+				elif(re.match(emailRegex,row.attr)):
+					emailList.append(row.attr)
+				elif(re.match(coordinatesRegex, row.attr)):
+					coordinatesList.append(row.attr)
+				elif(re.match(streetRegex,row.attr)):
+					streetList.append(row.attr)
+				elif(re.match(nameRegex,row.attr)):
+					nameList.append(row.attr)
+				elif(re.match(websiteRegex,row.attr)):
+					websitelList.append(row.attr)
 		
 	
 				
@@ -75,6 +74,4 @@ print(len(coordinatesList))
 print(len(streetList))
 print(len(websiteList))
 print(len(nameList))
-
-
-#print("Manhattan:",manhattanCount, "Brooklyn:",brooklynCount, "Bronx:", bronxCount,"Staten Island:",statenCount) 
+print(boroughCount)
