@@ -23,8 +23,7 @@ phoneNumberRegex1 = re.compile(r'([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([
 phoneNumberRegex2 =re.compile(r'\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$') 
 emailRegex = re.compile(r'.+@[^\.].*\.[a-z]{2,}$')
 coordinatesRegex = re.compile(r'(\()([-+]?)([\d]{1,2})(((\.)(\d+)(,)))(\s*)(([-+]?)([\d]{1,3})((\.)(\d+))?(\)))$')
-emailRegex = re.compile(r'(https?:\/\/)?(www\.)?([a-zA-Z0-9]+(-?[a-zA-Z0-9])*\.)+[\w]{2,}(\/\S*)?$')
-
+websiteRegex = re.compile(r'(https?:\/\/)?(www\.)?([a-zA-Z0-9]+(-?[a-zA-Z0-9])*\.)+[\w]{2,}(\/\S*)?$')
 
 streetRegex = re.compile(r'(\d{3,})\s?(\w{0,5})\s([a-zA-Z]{2,30})\s([a-zA-Z]{2,15})\.?\s?(\w{0,5})$')
 nameRegex = re.compile(r'[a-zA-Z]+(([\'\,\.\- ][a-zA-Z ])?[a-zA-Z]*)*$')
@@ -36,7 +35,7 @@ phoneNumberList = list()
 emailList = list()
 coordinatesList = list()
 streetList = list()
-emailList = list()
+websiteList = list()
 nameList = list()
 print("Count:",df.count())
 
@@ -63,9 +62,8 @@ for column in df.columns:
 				streetList.append(row.attr)
 			elif(re.match(nameRegex,row.attr)):
 				nameList.append(row.attr)
-
-			elif(re.match(emailRegex,row.attr)):
-				emailList.append(row.attr)
+			elif(re.match(websiteRegex,row.attr)):
+				websitelList.append(row.attr)
 		
 	
 				
@@ -75,7 +73,7 @@ print(len(phoneNumberList))
 print(len(emailList))
 print(len(coordinatesList))
 print(len(streetList))
-print(len(emailList))
+print(len(websiteList))
 print(len(nameList))
 
 
