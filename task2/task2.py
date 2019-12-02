@@ -28,7 +28,8 @@ websiteRegex = re.compile(r'(https?:\/\/)?(www\.)?([a-zA-Z0-9]+(-?[a-zA-Z0-9])*\
 streetRegex = re.compile(r'(\d{3,})\s?(\w{0,5})\s([a-zA-Z]{2,30})\s([a-zA-Z]{2,15})\.?\s?(\w{0,5})$')
 nameRegex = re.compile(r'[a-zA-Z]+(([\'\,\.\- ][a-zA-Z ])?[a-zA-Z]*)*$')
 
-
+school = ["SCHOOL","SCHOO","ACADEMY","COLLEGE","SCIENCE"]
+vehicleType = ["SEDAN","AMBULANCE","TRUCK", "BICYCLE","BUS","CONVERTIBLE","MOTORCYCLE", "VEHICLE", "MOPED", "SCOOTER", "TAXI", "PEDICAB","BOAT","VAN"]
 
 zipList = list()
 phoneNumberList = list()
@@ -37,6 +38,8 @@ coordinatesList = list()
 streetList = list()
 websiteList = list()
 nameList = list()
+schoolList = list()
+vehicleTypeList = list()
 print("Count:",df.count())
 
 count =0
@@ -59,12 +62,14 @@ for column in df.columns:
 					coordinatesList.append(row.attr)
 				elif(re.match(streetRegex,row.attr)):
 					streetList.append(row.attr)
-				elif(re.match(nameRegex,row.attr)):
-					nameList.append(row.attr)
+				#elif(re.match(nameRegex,row.attr)):
+				#	nameList.append(row.attr)
 				elif(re.match(websiteRegex,row.attr)):
 					websitelList.append(row.attr)
-		
-	
+				elif(len(list( set(school)& set((row.attr).upper().split())))>0):
+					schoolList.append(row.attr)
+				elif(len(list( set(vehicleType)& set((row.attr).upper().split())))>0):
+					vehicleTypeList.append(row.attr)	
 				
 			
 print(len(zipList))
@@ -74,4 +79,6 @@ print(len(coordinatesList))
 print(len(streetList))
 print(len(websiteList))
 print(len(nameList))
+print(len(schoolList))
+print(len(vehicleTypeList))
 print(boroughCount)
