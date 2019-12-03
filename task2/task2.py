@@ -30,7 +30,8 @@ websiteRegex = re.compile(r'(https?:\/\/)?(www\.)?([a-zA-Z0-9]+(-?[a-zA-Z0-9])*\
 addressRegex = re.compile(r'(\d{3,})\s?(\w{0,5})\s([a-zA-Z]{2,30})\s([a-zA-Z]{2,15})\.?\s?(\w{0,5})$')
 nameRegex = re.compile(r'[a-zA-Z]+(([\'\,\.\- ][a-zA-Z ])?[a-zA-Z]*)*$')
 
-school = ["SCHOOL","SCHOO","ACADEMY","COLLEGE","SCIENCE"]
+school = ["SCHOOL","SCHOO"]
+college = ["ACADEMY","COLLEGE","TECHNOLOGY"]
 
 vehicleType = ["SEDAN","AMBULANCE","TRUCK", "BICYCLE","BUS","CONVERTIBLE","MOTORCYCLE", "VEHICLE", "MOPED", "SCOOTER", "TAXI", "PEDICAB","BOAT","VAN"]
 schoolLevel = ["K-2", "MIDDLE", "ELEMENTARY","HIGH","K-3","K-4","K-5","K-6","K-7","K-8","K-9","K-10","K-11","K-12"]
@@ -82,6 +83,8 @@ for column in df.columns:
 					dict['website'] +=1
 				elif(len(list( set(school)& set((row.attr).upper().split())))>0):
 					dict['school'] +=1
+				elif(len(list( set(college)& set((row.attr).upper().split())))>0):
+					dict['college'] +=1
 				elif(len(list( set(vehicleType)& set((row.attr).upper().split())))>0):
 					dict['vehicleType'] +=1		
 				elif(len(list( set(schoolLevel)& set((row.attr).upper().split())))>0):
