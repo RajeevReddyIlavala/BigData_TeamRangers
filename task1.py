@@ -4,7 +4,11 @@ from pyspark.sql import SparkSession
 from csv import reader
 import sys
 from pyspark.sql import functions as F
-import json 
+import json
+import re
+import statistics as stats
+from dateutil.parser import parse
+
 
 spark = SparkSession \
      .builder \
@@ -20,6 +24,9 @@ result_json = {
     "dataset_name": sys.argv[1].split('/')[-1]
     }
 result_json["columns"]=list()
+intRegex = re.compile(r'^[-+]?[0-9]+$')
+realRegex = re.compile(r'([0-9]+(?:\.[0-9]+)?)(?:\s)$')
+
 
 for column in df.columns:	
 	nonemptycells = 0
@@ -42,6 +49,65 @@ for column in df.columns:
 		"number_distinct_values":distinct_values,
 		"frequent_values":top_frequent_elements
 	}
+	column_json["data_types"]=list()
+	intList = list()
+	realList = list()
+	dateTimeList = list()
+	textList = list()
+	totalChars = 0
+	column_data = spark.sql("SELECT `"+column+"` as attr from table1 ").collect()
+	for row in column_data:
+		if(row.attr is not None):
+			if(re.match(intRegex, row.attr)):
+				intList.append(int(row.attr))
+				realList.append(float(row.attr))
+			elif(re.match(realRegex, row.attr)):
+				realList.append(float(row.attr))	
+			else:
+				try:
+					dateTime = parse(row.attr)
+					dateTimeList.append(dateTime)
+				except (ValueError, OverflowError) as e:
+					totalChars += len(row.attr)
+					textList.append(row.attr)
+
+	if intList:
+		intJson = {"type":"INTEGER (LONG)",
+		"count":len(intList),
+		"max_value":max(intList),
+		"min_value":min(intList),
+		"mean":stats.mean(intList) if len(intList) > 1 else intList[0],
+		"stddev":stats.stdev(intList) if len(intList) > 1 else 0,
+		}
+		column_json["data_types"].append(intJson)
+	if realList:
+		realJson = {"type":"REAL",
+		"count":len(realList),
+		"max_value":max(realList),
+		"min_value":min(realList),
+		"mean":stats.mean(realList) if len(realList) > 1 else realList[0],
+		"stddev":stats.stdev(realList) if len(realList) > 1 else 0
+		}
+		column_json["data_types"].append(realJson)
+
+	if dateTimeList:
+		dateTimeJson = {"type":"DATE/TIME",
+		"count":len(dateTimeList),
+		"max_value":str(max(dateTimeList)),
+		"min_value":str(min(dateTimeList))
+		}
+		column_json["data_types"].append(dateTimeJson)
+
+	if textList:
+		textListSorted = sorted(textList, key=lambda textAttr:len(textAttr))
+		textJson = {"type":"TEXT",
+		"count":len(textList),
+		"shortest_values":textListSorted[:5],
+		"longest_values":textListSorted[-5:],
+		"average_length":totalChars/len(textList)
+		}
+		column_json["data_types"].append(textJson)
+
 	result_json["columns"].append(column_json)
 
 filename=sys.argv[1].split('/')[-1]+ ".json"
