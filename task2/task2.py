@@ -47,6 +47,7 @@ parks = ["PARK","PLAYGROUND", "GARDEN"]
 neighborhood = sc.textFile("neighborhood.txt").collect()
 city = sc.textFile("city.txt").collect()
 cityAgency = sc.textFile("agency.txt").collect()
+carMake = sc.textFile("carmake.txt").collect()
 
 dict = {'personName': 0, 'businessName': 0, 'phoneno':0, 'address':0, 'street':0,'city':0, 'neighborhood':0, 'coordinate':0, 'zip':0, 'borough':0,\
        'school':0, 'color':0, 'carMake':0, 'cityAgency':0, 'subjects':0, 'schoolLevel':0, 'college':0, 'website':0, \
@@ -67,6 +68,8 @@ for column in df.columns:
 					dict['city'] +=1
 				elif row.attr.lower() in [x.lower() for x in cityAgency]:
 					dict['cityAgency'] +=1
+				elif row.attr.lower() in [x.lower() for x in carMake]:
+					dict['carMake'] +=1                    
 				elif(re.match(zipRegex, row.attr)):
 					dict['zip'] +=1
 				elif(re.match(phoneNumberRegex2, row.attr)):
