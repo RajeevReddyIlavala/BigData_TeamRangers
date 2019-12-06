@@ -7,7 +7,7 @@ from pyspark.sql import functions as F
 import json 
 import re
 import os
-from fuzzywuzzy import fuzz
+from difflib import SequenceMatcher
 
 spark = SparkSession \
      .builder \
@@ -21,7 +21,7 @@ sc = SparkContext.getOrCreate(conf)
 df = spark.read.csv(sys.argv[1], sep = '\t',header = 'false')
 
 df.createOrReplaceTempView("table1")
-
+######################LABELS USING REGEX#####################################
 zipRegex = re.compile(r'\d{5}$|^\d{5}-\d{4}$')
 #phoneNumberRegex1 = re.compile(r'([0-9]( |-)?)?(\(?[0-9]{3}\)?|[0-9]{3})( |-)?([0-9]{3}( |-)?[0-9]{4}|[a-zA-Z0-9]{7})$')
 phoneNumberRegex2 =re.compile(r'\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$') 
@@ -29,8 +29,11 @@ emailRegex = re.compile(r'.+@[^\.].*\.[a-z]{2,}$')
 coordinatesRegex = re.compile(r'(\()([-+]?)([\d]{1,2})(((\.)(\d+)(,)))(\s*)(([-+]?)([\d]{1,3})((\.)(\d+))?(\)))$')
 websiteRegex = re.compile(r'(https?:\/\/)?(www\.)?([a-zA-Z0-9]+(-?[a-zA-Z0-9])*\.)+[\w]{2,}(\/\S*)?$')
 addressRegex = re.compile(r'(\d{3,})\s?(\w{0,5})\s([a-zA-Z]{2,30})\s([a-zA-Z]{2,15})\.?\s?(\w{0,5})$')
-nameRegex = re.compile(r'[a-zA-Z]+(([\'\,\.\- ][a-zA-Z ])?[a-zA-Z]*)*$')
+nameRegex = re.compile(r'([a-zA-Z]{3,30}\s*)+$')
 
+###########################################################################
+
+################LABELS USING DICTIONARY####################################
 school = ["SCHOOL","SCHOO"]
 college = ["ACADEMY","COLLEGE","TECHNOLOGY"]
 
@@ -51,29 +54,44 @@ cityAgency = sc.textFile("agency.txt").collect()
 carMake = sc.textFile("carmake.txt").collect()
 color = sc.textFile("colors.txt").collect()
 
-
+#########################################################################
 dict = {'personName': 0, 'businessName': 0, 'phoneno':0, 'address':0, 'street':0,'city':0, 'neighborhood':0, 'coordinate':0, 'zip':0, 'borough':0,\
        'school':0, 'color':0, 'carMake':0, 'cityAgency':0, 'subjects':0, 'schoolLevel':0, 'college':0, 'website':0, \
-       'buildingClassification':0, 'vehicleType': 0, 'park':0}
+       'buildingClassification':0, 'vehicleType': 0, 'park':0, 'other':0}
 
 count =0
+
+def similar(a, b):
+	for j in b:
+		
+		if SequenceMatcher(None, a.lower(), j.lower()).ratio() > 0.75:
+			return True
+	return False
+
+def similarity(a, b):
+	for i in a:
+		for j in b:
+			if (SequenceMatcher(None, i.lower(), j.lower()).ratio() >= 0.75):
+				return True
+	return False
+
 
 for column in df.columns:
 	column_data = spark.sql("SELECT `"+column+"` as attr from table1 ").collect()
 	if count ==0:
 		count +=1
-		boroughCount = spark.sql("select * from table1 where lower(`"+ column +"`) in ('brooklyn','bronx', 'manhattan', 'queens', 'staten island')").count()
+		dict['borough'] = spark.sql("select * from table1 where lower(`"+ column +"`) in ('brooklyn','bronx', 'manhattan', 'queens', 'staten island')").count()
 		for row in column_data:
 			if(row.attr is not None):
-				if row.attr.lower() in [x.lower() for x in neighborhood]:
+				if similar(row.attr, neighborhood):
 					dict['neighborhood'] +=1
-				elif row.attr.lower() in [x.lower() for x in city]:
+				elif similar(row.attr, city):
 					dict['city'] +=1
-				elif row.attr.lower() in [x.lower() for x in cityAgency]:
+				elif similar(row.attr, cityAgency):
 					dict['cityAgency'] +=1
-				elif row.attr.lower() in [x.lower() for x in carMake]:
+				elif similar(row.attr, carMake):
 					dict['carMake'] +=1                    
-				elif row.attr.lower() in [x.lower() for x in color]:
+				elif similar(row.attr, color):
 					dict['color'] +=1
 				elif(re.match(zipRegex, row.attr)):
 					dict['zip'] +=1
@@ -85,25 +103,24 @@ for column in df.columns:
 					dict['coordinate'] +=1
 				elif(re.match(addressRegex,row.attr)):
 					dict['address'] +=1
-				elif(row.attr.upper() in [x.upper() for x in subjects]):
+				elif similar(row.attr, subjects):
 					dict['subjects'] +=1                
 				elif(re.match(websiteRegex,row.attr)):
 					dict['website'] +=1
-				elif(len(list( set(school)& set((row.attr).upper().split())))>0):
+				elif similarity(set((row.attr).split()), school):
 					dict['school'] +=1
-				elif(len(list( set(college)& set((row.attr).upper().split())))>0):
+				elif similarity(set((row.attr).split()), college):
 					dict['college'] +=1
-				elif(len(list( set(vehicleType)& set((row.attr).upper().split())))>0):
+				elif similarity(set((row.attr).split()), vehicleType):
 					dict['vehicleType'] +=1		
-				elif(len(list( set(schoolLevel)& set((row.attr).upper().split())))>0):
+				elif similarity(set((row.attr).split()), schoolLevel):
 					dict['schoolLevel'] +=1
-				elif(len(list( set(businessName)& set((row.attr).upper().split())))>0):
+				elif similarity(set((row.attr).split()), businessName):
 					dict['businessName'] +=1		
-				elif(row.attr.upper() in [x.upper() for x in buildingClassification]):
+				elif similarity(set((row.attr).split()), buildingClassification):
 					dict['buildingClassification'] +=1
-				elif(len(list( set(parks)& set((row.attr).upper().split())))>0):
-					dict['park'] +=1
-			
+				elif similarity(set((row.attr).upper().split()), parks):
+					dict['park'] +=1	
 print(dict)
 
 
@@ -117,12 +134,13 @@ count2 = dict[max2]
 del dict[max2]
 max3 = max(dict, key=dict.get)
 count3 = dict[max3]
-if ((count1-count2)/count1) < 0.5 :
-	semantic_label = max1 + ", " + max2
-	finalcount +=count2    
-	if ((count1-count3)/count1) < 0.5:
-		semantic_label = max1 + ", " + max2 + ", " + max3
-		finalcount +=count3
+if count1 > 0:
+	if ((count1-count2)/count1) < 0.5 :
+		semantic_label = max1 + ", " + max2
+		finalcount +=count2    
+		if ((count1-count3)/count1) < 0.5:
+			semantic_label = max1 + ", " + max2 + ", " + max3
+			finalcount +=count3
         
 ##############JSON IMPLEMENTATION##################
 
@@ -146,7 +164,7 @@ with open(os.path.join('/home/ak7674/FinalProject/task2/json',filename), 'w') as
 ##################################################
 
 
-
+print(sys.argv[1].split('/')[-1])
 print("label:",semantic_label)
 
 
