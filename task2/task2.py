@@ -165,7 +165,7 @@ result_json["semantic_types"].append(column_json)
 
 filename=sys.argv[1].split('/')[-1]+ ".json"
 
-with open(os.path.join('/home/ak7674/FinalProject/task2/json',filename), 'w') as f:
+with open(filename, 'w') as f:
     json.dump(result_json, f)
 
 ##################################################
