@@ -17,7 +17,7 @@ if [ $count == 0 ]
 then
 count=$count+1
 else
-spark-submit --conf spark.pyspark.python=$PYSPARK_PYTHON task2.py /user/hm74/NYCColumns/$word
+spark-submit --conf spark.executor.memoryOverhead=3G --executor-memory 6G task2.py /user/hm74/NYCColumns/$word
 fi
 done
 

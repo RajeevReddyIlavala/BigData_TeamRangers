@@ -37,6 +37,8 @@ nameRegex = re.compile(r'([a-zA-Z]{3,30}\s*)+$')
 school = ["SCHOOL","SCHOO"]
 college = ["ACADEMY","COLLEGE","TECHNOLOGY"]
 
+street = ["AVE","AVENUE", "STREET", "ST", "BOULEVARD", "BLVD"]
+
 vehicleType = ["SEDAN","AMBULANCE","TRUCK", "BICYCLE","BUS","CONVERTIBLE","MOTORCYCLE", "VEHICLE", "MOPED", "SCOOTER", "TAXI", "PEDICAB","BOAT","VAN"]
 schoolLevel = ["K-2", "MIDDLE", "ELEMENTARY","HIGH","K-3","K-4","K-5","K-6","K-7","K-8","K-9","K-10","K-11","K-12"]
 
@@ -47,6 +49,8 @@ subjects = ["MATH", "MATH A", "MATH B", "US HISTORY", "SCIENCE", "ENGLISH", "SOC
 buildingClassification = ["R0-CONDOMINIUM", "R2-WALK-UP","C1-WALK-UP","C2-WALK-UP","C3-WALK-UP","C4-WALK-UP","C5-WALK-UP","C6-WALK-UP","C7-WALK-UP", "C8-WALK-UP","D0-ELEVATOR", "D1-ELEVATOR","D2-ELEVATOR","D3-ELEVATOR","D4-ELEVATOR", "D5-ELEVATOR", "D6-ELEVATOR","D7-ELEVATOR", "D8-ELEVATOR","D9-ELEVATOR"]
 
 parks = ["PARK","PLAYGROUND", "GARDEN"]
+
+borough = ["brooklyn","bronx", "manhattan", "queens", "staten island"]
 
 neighborhood = sc.textFile("neighborhood.txt").collect()
 city = sc.textFile("city.txt").collect()
@@ -76,51 +80,54 @@ def similarity(a, b):
 	return False
 
 
-for column in df.columns:
-	column_data = spark.sql("SELECT `"+column+"` as attr from table1 ").collect()
-	if count ==0:
-		count +=1
-		dict['borough'] = spark.sql("select * from table1 where lower(`"+ column +"`) in ('brooklyn','bronx', 'manhattan', 'queens', 'staten island')").count()
-		for row in column_data:
-			if(row.attr is not None):
-				if similar(row.attr, neighborhood):
-					dict['neighborhood'] +=1
-				elif similar(row.attr, city):
-					dict['city'] +=1
-				elif similar(row.attr, cityAgency):
-					dict['cityAgency'] +=1
-				elif similar(row.attr, carMake):
-					dict['carMake'] +=1                    
-				elif similar(row.attr, color):
-					dict['color'] +=1
-				elif(re.match(zipRegex, row.attr)):
-					dict['zip'] +=1
-				elif(re.match(phoneNumberRegex2, row.attr)):
-					dict['phoneno'] +=1
-				elif(re.match(emailRegex,row.attr)):
-					dict['email'] +=1
-				elif(re.match(coordinatesRegex, row.attr)):
-					dict['coordinate'] +=1
-				elif(re.match(addressRegex,row.attr)):
-					dict['address'] +=1
-				elif similar(row.attr, subjects):
-					dict['subjects'] +=1                
-				elif(re.match(websiteRegex,row.attr)):
-					dict['website'] +=1
-				elif similarity(set((row.attr).split()), school):
-					dict['school'] +=1
-				elif similarity(set((row.attr).split()), college):
-					dict['college'] +=1
-				elif similarity(set((row.attr).split()), vehicleType):
-					dict['vehicleType'] +=1		
-				elif similarity(set((row.attr).split()), schoolLevel):
-					dict['schoolLevel'] +=1
-				elif similarity(set((row.attr).split()), businessName):
-					dict['businessName'] +=1		
-				elif similarity(set((row.attr).split()), buildingClassification):
-					dict['buildingClassification'] +=1
-				elif similarity(set((row.attr).upper().split()), parks):
-					dict['park'] +=1	
+column_data = spark.sql("SELECT _c0 as attr1,_c1 as attr2 from table1 ").collect()
+
+for row in column_data:
+	if(row.attr1 is not None):
+		if similar(row.attr1, borough):
+			dict['borough']+= int(row.attr2)
+		elif similar(row.attr1, neighborhood):
+			dict['neighborhood'] += int(row.attr2)
+		elif similar(row.attr1, city):
+			dict['city'] +=int(row.attr2)
+		elif similar(row.attr1, cityAgency):
+			dict['cityAgency'] +=int(row.attr2)
+		elif similar(row.attr1, carMake):
+			dict['carMake'] +=int(row.attr2)                    
+		elif similar(row.attr1, color):
+			dict['color'] +=int(row.attr2)
+		elif(re.match(zipRegex, row.attr1)):
+			dict['zip'] +=int(row.attr2)
+		elif(re.match(phoneNumberRegex2, row.attr1)):
+			dict['phoneno'] +=int(row.attr2)
+		elif(re.match(emailRegex,row.attr1)):
+			dict['email'] +=int(row.attr2)
+		elif(re.match(coordinatesRegex, row.attr1)):
+			dict['coordinate'] +=int(row.attr2)
+		elif(re.match(addressRegex,row.attr1)):
+			dict['address'] += int(row.attr2)
+		elif similarity(set((row.attr1).split()), street):
+			dict['street'] += int(row.attr2)
+		elif similar(row.attr1, subjects):
+			dict['subjects'] +=int(row.attr2)                
+		elif(re.match(websiteRegex,row.attr1)):
+			dict['website'] +=int(row.attr2)
+		elif similarity(set((row.attr1).split()), school):
+			dict['school'] +=int(row.attr2)
+		elif similarity(set((row.attr1).split()), college):
+			dict['college'] +=int(row.attr2)
+		elif similarity(set((row.attr1).split()), vehicleType):
+			dict['vehicleType'] +=int(row.attr2)		
+		elif similarity(set((row.attr1).split()), schoolLevel):				
+			dict['schoolLevel'] +=int(row.attr2)
+		elif similarity(set((row.attr1).split()), businessName):
+			dict['businessName'] +=int(row.attr2)		
+		elif similarity(set((row.attr1).split()), buildingClassification):
+			dict['buildingClassification'] +=int(row.attr2)
+		elif similarity(set((row.attr1).upper().split()), parks):
+			dict['park'] +=int(row.attr2)
+		elif (re.match(nameRegex,row.attr1)):	
+			dict['personName'] +=int(row.attr2)
 print(dict)
 
 

@@ -1,1 +1,1 @@
-{"dataset_name": "xubg-57si.OWNER_BUS_STREET_NAME.txt.gz", "semantic_types": [{"semantic_type": "address", "count": 1674}]}
+{"dataset_name": "xubg-57si.OWNER_BUS_STREET_NAME.txt.gz", "semantic_types": [{"semantic_type": "street", "count": 12737}]}

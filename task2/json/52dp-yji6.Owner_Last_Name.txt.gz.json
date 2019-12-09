@@ -1,1 +1,1 @@
-{"dataset_name": "52dp-yji6.Owner_Last_Name.txt.gz", "semantic_types": [{"semantic_type": "city", "count": 76}]}
+{"dataset_name": "52dp-yji6.Owner_Last_Name.txt.gz", "semantic_types": [{"semantic_type": "personName", "count": 161849}]}

@@ -1,1 +1,1 @@
-{"dataset_name": "c284-tqph.Vehicle_Make.txt.gz", "semantic_types": [{"semantic_type": "carMake, vehicleType", "count": 43}]}
+{"dataset_name": "c284-tqph.Vehicle_Make.txt.gz", "semantic_types": [{"semantic_type": "carMake", "count": 5863735}]}
