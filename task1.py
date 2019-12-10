@@ -41,6 +41,8 @@ result_json = {
     "dataset_name": sys.argv[1].split('/')[-1]
 }
 result_json["columns"] = list()
+candidate_keys=[]
+
 for column in df.columns:
     nonemptycells = 0
     emptycells = 0
@@ -58,6 +60,7 @@ for column in df.columns:
     result = spark.sql("SELECT `"+column+"` as attr, COUNT(`"+column +
                        "`) as frequency from table1 GROUP BY `"+column+"` ORDER BY frequency DESC LIMIT 5")
     top_frequent_elements = [row.attr for row in result.collect()]
+
     column_json = {
         "column_name": column,
         "number_non_empty_cells": nonemptycells,
@@ -66,9 +69,12 @@ for column in df.columns:
         "frequent_values": top_frequent_elements
     }
 
+    #Calculate candidate keys
+    if(df.select(column).count()==df.select(column).distinct().count()):
+        candidate_keys.append(column)
+
     column_json["data_types"] = list()
     get_data_type = F.udf(get_type, IntegerType())
-# 	for column in df.columns:
     current = df.select(column, get_data_type(column).alias("data_type"))
     int_type = current.where(current["data_type"] == 1)
     float_type = current.where(current["data_type"] == 2)
@@ -113,6 +119,7 @@ for column in df.columns:
                     "average_length": avg_length
                     }
         column_json["data_types"].append(textJson)
+
 
     result_json["columns"].append(column_json)
 
