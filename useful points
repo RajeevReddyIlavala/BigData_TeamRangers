@@ -1,2 +1,0 @@
-command to read dataset : df = spark.read.csv("/user/hm74/NYCOpenData/vxxs-iyt2.tsv.gz", sep = '\t',header = 'true')
-reference repo for cleaning data https://github.com/googlr/NYC-At-Large/blob/master/DataCleaning/src/python/recognize_and_remove_null_count_empty.py
